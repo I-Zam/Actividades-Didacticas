@@ -46,18 +46,27 @@
 
         <!-- QUIZ -->
         <div id="quiz" class="tab-content">
-            <div class="score-display">
-                <h2 id="quiz-score">0 / 0</h2>
-                <p id="quiz-progress">Pregunta 1 de 10</p>
-            </div>
+            <div class="quiz-container">
+                <div class="stats">
+                    <div class="stat-card">
+                        <h3 id="quiz-progress">1/20</h3>
+                        <p>Pregunta</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3 id="quiz-correct">0</h3>
+                        <p>Correctas</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3 id="quiz-incorrect">0</h3>
+                        <p>Incorrectas</p>
+                    </div>
+                </div>
 
-            <div class="quiz-container" id="quiz-container">
-                <p style="text-align:center; color:#999;">Haz clic en "Comenzar Quiz" para empezar</p>
-            </div>
+                <div id="quiz-questions"></div>
 
-            <div class="btn-group">
-                <button class="btn" onclick="startQuiz()">▶️ Comenzar Quiz</button>
-                <button class="btn btn-secondary" onclick="resetQuiz()">🔄 Reiniciar</button>
+                <div class="btn-group">
+                    <button class="btn" onclick="startQuiz()">🎯 Comenzar Quiz</button>
+                </div>
             </div>
         </div>
 
