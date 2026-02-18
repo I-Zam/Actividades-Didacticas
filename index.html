@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Juego de Propiedades de Materiales</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="juego-styles.css">
 </head>
 <body>
     <div class="container">
@@ -32,7 +32,7 @@
             </div>
 
             <div id="timer" class="score-display" style="display:none;">
-                <h2 id="timer-display">60s</h2>
+                <h2 id="timer-display">5:00</h2>
                 <p>Tiempo restante</p>
             </div>
 
@@ -51,11 +51,13 @@
                 <p id="quiz-progress">Pregunta 1 de 10</p>
             </div>
 
-            <div class="quiz-container" id="quiz-container"></div>
+            <div class="quiz-container" id="quiz-container">
+                <p style="text-align:center; color:#999;">Haz clic en "Comenzar Quiz" para empezar</p>
+            </div>
 
             <div class="btn-group">
-                <button class="btn" onclick="resetQuiz()">🔄 Reiniciar Quiz</button>
-                <button class="btn btn-secondary" onclick="nextQuestion()" id="next-btn" style="display:none;">➡️ Siguiente</button>
+                <button class="btn" onclick="startQuiz()">▶️ Comenzar Quiz</button>
+                <button class="btn btn-secondary" onclick="resetQuiz()">🔄 Reiniciar</button>
             </div>
         </div>
 
@@ -81,12 +83,13 @@
             </div>
 
             <div class="btn-group">
-                <button class="btn" onclick="guardarPuntuacion()">💾 Guardar Mi Puntuación</button>
-                <button class="btn btn-secondary" onclick="location.reload()">🔄 Actualizar</button>
+                <button class="btn btn-secondary" onclick="clearLeaderboard()">🗑️ Limpiar Clasificación</button>
+                <button class="btn" onclick="location.reload()">🔄 Actualizar</button>
             </div>
         </div>
     </div>
 
-  <!--  <script src="script.js"></script>-->
+    <!-- SCRIPT OPTIMIZADO -->
+    <script src="juego-script-compatible.js"></script>
 </body>
 </html>
