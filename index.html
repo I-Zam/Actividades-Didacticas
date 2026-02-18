@@ -1,0 +1,919 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Juego de Propiedades de Materiales</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 10px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+            padding: 20px;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .tab-btn {
+            padding: 12px 24px;
+            background: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .tab-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+        }
+
+        .tab-btn.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        /* MEMORAMA */
+        .memorama-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            aspect-ratio: 1;
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2em;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            position: relative;
+            min-height: 120px;
+        }
+
+        .card:hover:not(.matched) {
+            transform: scale(1.05);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+        }
+
+        .card.flipped {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            font-size: 0.9em;
+            padding: 10px;
+            text-align: center;
+        }
+
+        .card.matched {
+            opacity: 0.5;
+            cursor: default;
+        }
+
+        /* QUIZ */
+        .quiz-container {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+        }
+
+        .question {
+            margin-bottom: 30px;
+        }
+
+        .question h3 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.2em;
+        }
+
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .option {
+            padding: 12px 16px;
+            background: #f0f0f0;
+            border: 2px solid transparent;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1em;
+        }
+
+        .option:hover {
+            background: #e0e0e0;
+            border-color: #667eea;
+        }
+
+        .option.selected {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .option.correct {
+            background: #10b981;
+            color: white;
+            border-color: #10b981;
+        }
+
+        .option.incorrect {
+            background: #ef4444;
+            color: white;
+            border-color: #ef4444;
+        }
+
+        /* TABLA DE CLASIFICACIÓN */
+        .leaderboard {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+        }
+
+        .leaderboard-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        .leaderboard-table th {
+            background: #667eea;
+            color: white;
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        .leaderboard-table td {
+            padding: 15px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .leaderboard-table tr:hover {
+            background: #f9f9f9;
+        }
+
+        .medal {
+            font-size: 1.5em;
+            margin-right: 10px;
+        }
+
+        .rank-1 { color: #fbbf24; }
+        .rank-2 { color: #c0c0c0; }
+        .rank-3 { color: #cd7f32; }
+
+        /* PUNTUACIÓN */
+        .score-display {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .score-display h2 {
+            color: #667eea;
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+
+        .score-display p {
+            color: #666;
+            font-size: 1.1em;
+        }
+
+        /* BOTONES */
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn:hover {
+            background: #764ba2;
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: #10b981;
+        }
+
+        .btn-secondary:hover {
+            background: #059669;
+        }
+
+        /* RESPONSIVE */
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.8em;
+            }
+
+            .memorama-container {
+                grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            }
+
+            .quiz-container,
+            .leaderboard {
+                padding: 20px;
+            }
+
+            .tabs {
+                gap: 5px;
+            }
+
+            .tab-btn {
+                padding: 10px 16px;
+                font-size: 0.9em;
+            }
+        }
+
+        .modo-selector {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .modo-btn {
+            padding: 12px 24px;
+            background: white;
+            border: 2px solid #667eea;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            color: #667eea;
+        }
+
+        .modo-btn.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .modo-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .stat-card h3 {
+            color: #667eea;
+            font-size: 1.5em;
+            margin-bottom: 5px;
+        }
+
+        .stat-card p {
+            color: #666;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎮 Juego de Propiedades de Materiales</h1>
+            <p>Aprende y compite con tus compañeros</p>
+        </div>
+
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('memorama')">🎴 Memorama</button>
+            <button class="tab-btn" onclick="switchTab('quiz')">❓ Quiz</button>
+            <button class="tab-btn" onclick="switchTab('leaderboard')">🏆 Clasificación</button>
+        </div>
+
+        <!-- MEMORAMA -->
+        <div id="memorama" class="tab-content active">
+            <div class="score-display">
+                <h2 id="memorama-score">0 puntos</h2>
+                <p>Empareja las propiedades con sus definiciones</p>
+            </div>
+
+            <div class="modo-selector">
+                <button class="modo-btn active" onclick="setModoMemorama('competencia')">⚡ Competencia (Tiempo)</button>
+                <button class="modo-btn" onclick="setModoMemorama('estudio')">📚 Estudio (Sin Tiempo)</button>
+            </div>
+
+            <div id="timer" class="score-display" style="display:none;">
+                <h2 id="timer-display">60s</h2>
+                <p>Tiempo restante</p>
+            </div>
+
+            <div class="memorama-container" id="memorama-container"></div>
+
+            <div class="btn-group">
+                <button class="btn" onclick="resetMemorama()">🔄 Reiniciar</button>
+                <button class="btn btn-secondary" onclick="nextMemorama()">➡️ Siguiente Ronda</button>
+            </div>
+        </div>
+
+        <!-- QUIZ -->
+        <div id="quiz" class="tab-content">
+            <div class="score-display">
+                <h2 id="quiz-score">0 / 0</h2>
+                <p id="quiz-progress">Pregunta 1 de 10</p>
+            </div>
+
+            <div class="quiz-container" id="quiz-container"></div>
+
+            <div class="btn-group">
+                <button class="btn" onclick="resetQuiz()">🔄 Reiniciar Quiz</button>
+                <button class="btn btn-secondary" onclick="nextQuestion()" id="next-btn" style="display:none;">➡️ Siguiente</button>
+            </div>
+        </div>
+
+        <!-- LEADERBOARD -->
+        <div id="leaderboard" class="tab-content">
+            <div class="leaderboard">
+                <h2>🏆 Top 3 Jugadores</h2>
+                <table class="leaderboard-table">
+                    <thead>
+                        <tr>
+                            <th>Posición</th>
+                            <th>Nombre</th>
+                            <th>Puntuación</th>
+                            <th>Modo</th>
+                        </tr>
+                    </thead>
+                    <tbody id="leaderboard-body">
+                        <tr>
+                            <td colspan="4" style="text-align:center; color:#999;">Cargando clasificación...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="btn-group">
+                <button class="btn" onclick="guardarPuntuacion()">💾 Guardar Mi Puntuación</button>
+                <button class="btn btn-secondary" onclick="location.reload()">🔄 Actualizar</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // DATOS
+        const propiedadesData = {
+            "familias": [
+                {
+                    "id": "mecanicas",
+                    "nombre": "Propiedades Mecánicas",
+                    "color": "#3B82F6",
+                    "icono": "⚙️",
+                    "propiedades": [
+                        {"id": "resistencia", "nombre": "Resistencia", "definicion": "Capacidad de soportar carga sin romperse", "aplicacion": "Puentes, edificios, vigas estructurales"},
+                        {"id": "rigidez", "nombre": "Rigidez", "definicion": "Oposición a la deformación elástica", "aplicacion": "Estructuras que no deben deformarse"},
+                        {"id": "ductilidad", "nombre": "Ductilidad", "definicion": "Capacidad de deformarse plásticamente antes de fractura", "aplicacion": "Cables, alambres de cobre"},
+                        {"id": "dureza", "nombre": "Dureza", "definicion": "Resistencia al rayado y penetración", "aplicacion": "Herramientas de corte, brocas"},
+                        {"id": "tenacidad", "nombre": "Tenacidad", "definicion": "Energía absorbida antes de la fractura", "aplicacion": "Herramientas de impacto"}
+                    ]
+                },
+                {
+                    "id": "electricas",
+                    "nombre": "Propiedades Eléctricas",
+                    "color": "#FBBF24",
+                    "icono": "⚡",
+                    "propiedades": [
+                        {"id": "conductividad", "nombre": "Conductividad Eléctrica", "definicion": "Facilidad para transportar corriente eléctrica", "aplicacion": "Cables eléctricos, conexiones"},
+                        {"id": "resistividad", "nombre": "Resistividad", "definicion": "Oposición al flujo de corriente eléctrica", "aplicacion": "Resistencias en circuitos"},
+                        {"id": "semiconductividad", "nombre": "Semiconductividad", "definicion": "Conducción controlada de electricidad", "aplicacion": "Microchips, transistores, diodos"},
+                        {"id": "permitividad", "nombre": "Permitividad", "definicion": "Respuesta a campos eléctricos externos", "aplicacion": "Capacitores, aislantes"}
+                    ]
+                },
+                {
+                    "id": "termicas",
+                    "nombre": "Propiedades Térmicas",
+                    "color": "#EF4444",
+                    "icono": "🔥",
+                    "propiedades": [
+                        {"id": "conductividad-termica", "nombre": "Conductividad Térmica", "definicion": "Facilidad para transportar calor", "aplicacion": "Disipadores de calor, radiadores"},
+                        {"id": "capacidad-calorifica", "nombre": "Capacidad Calorífica", "definicion": "Energía para aumentar temperatura", "aplicacion": "Sistemas de almacenamiento de calor"},
+                        {"id": "expansion-termica", "nombre": "Expansión Térmica", "definicion": "Cambio en dimensiones con temperatura", "aplicacion": "Juntas de expansión en puentes"},
+                        {"id": "difusividad-termica", "nombre": "Difusividad Térmica", "definicion": "Velocidad de propagación del calor", "aplicacion": "Materiales refractarios en hornos"}
+                    ]
+                },
+                {
+                    "id": "magneticas",
+                    "nombre": "Propiedades Magnéticas",
+                    "color": "#A855F7",
+                    "icono": "🧲",
+                    "propiedades": [
+                        {"id": "ferromagnetismo", "nombre": "Ferromagnetismo", "definicion": "Atracción fuerte a campos magnéticos", "aplicacion": "Motores eléctricos, electroimanes"},
+                        {"id": "paramagnetismo", "nombre": "Paramagnetismo", "definicion": "Atracción débil a campos magnéticos", "aplicacion": "Algunos metales no ferrosos"},
+                        {"id": "diamagnetismo", "nombre": "Diamagnetismo", "definicion": "Repulsión a campos magnéticos", "aplicacion": "Blindaje magnético"},
+                        {"id": "permeabilidad-magnetica", "nombre": "Permeabilidad Magnética", "definicion": "Facilidad para ser magnetizado", "aplicacion": "Núcleos de transformadores"}
+                    ]
+                },
+                {
+                    "id": "opticas",
+                    "nombre": "Propiedades Ópticas",
+                    "color": "#22C55E",
+                    "icono": "💡",
+                    "propiedades": [
+                        {"id": "transparencia", "nombre": "Transparencia", "definicion": "Permite paso de luz sin dispersión", "aplicacion": "Lentes, ventanas, vidrios ópticos"},
+                        {"id": "translucidez", "nombre": "Translucidez", "definicion": "Permite paso de luz pero dispersa", "aplicacion": "Vidrios esmerilados, plásticos opacos"},
+                        {"id": "opacidad", "nombre": "Opacidad", "definicion": "Bloquea el paso de luz", "aplicacion": "Materiales de construcción"},
+                        {"id": "indice-refraccion", "nombre": "Índice de Refracción", "definicion": "Medida de curvatura de luz", "aplicacion": "Fibras ópticas, lentes especiales"}
+                    ]
+                },
+                {
+                    "id": "quimicas",
+                    "nombre": "Propiedades Químicas",
+                    "color": "#92400E",
+                    "icono": "⚗️",
+                    "propiedades": [
+                        {"id": "resistencia-corrosion", "nombre": "Resistencia a la Corrosión", "definicion": "Capacidad de soportar ataque ambiental", "aplicacion": "Tuberías marinas, estructuras costeras"},
+                        {"id": "oxidacion", "nombre": "Oxidación", "definicion": "Reacción con oxígeno con pérdida de electrones", "aplicacion": "Formación de óxidos en metales"},
+                        {"id": "degradacion-uv", "nombre": "Degradación UV", "definicion": "Deterioro por luz ultravioleta", "aplicacion": "Polímeros resistentes a UV"},
+                        {"id": "estabilidad-quimica", "nombre": "Estabilidad Química", "definicion": "Resistencia a reacciones químicas", "aplicacion": "Recipientes para reactivos químicos"}
+                    ]
+                }
+            ]
+        };
+
+        // VARIABLES GLOBALES
+        let memoramaScore = 0;
+        let quizScore = 0;
+        let quizTotal = 0;
+        let currentQuestion = 0;
+        let timerInterval = null;
+        let timerSeconds = 300; // 5 minutos
+        let modoMemorama = 'competencia';
+        let todasLasPropiedades = [];
+        let leaderboard = JSON.parse(localStorage.getItem('leaderboard')) || [];
+
+        // INICIALIZAR
+        function init() {
+            todasLasPropiedades = propiedadesData.familias.flatMap(f => 
+                f.propiedades.map(p => ({...p, familia: f.nombre, color: f.color}))
+            );
+            initMemorama();
+            initQuiz();
+            updateLeaderboard();
+        }
+
+        // TABS
+        function switchTab(tab) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+            document.getElementById(tab).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        // MEMORAMA
+        function initMemorama() {
+            const container = document.getElementById('memorama-container');
+            container.innerHTML = '';
+            memoramaScore = 0;
+            updateMemoramaScore();
+
+            const propiedades = [...todasLasPropiedades].sort(() => Math.random() - 0.5).slice(0, 6);
+            const pares = [];
+
+            propiedades.forEach(prop => {
+                pares.push({type: 'nombre', value: prop.nombre, id: prop.id});
+                pares.push({type: 'definicion', value: prop.definicion, id: prop.id});
+            });
+
+            pares.sort(() => Math.random() - 0.5);
+
+            pares.forEach((par, index) => {
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.innerHTML = '?';
+                card.dataset.index = index;
+                card.dataset.type = par.type;
+                card.dataset.id = par.id;
+                card.dataset.value = par.value;
+                card.onclick = () => flipCard(card);
+                container.appendChild(card);
+            });
+
+            if (modoMemorama === 'competencia') {
+                startTimer();
+            }
+        }
+
+        function flipCard(card) {
+            if (card.classList.contains('flipped') || card.classList.contains('matched')) return;
+
+            card.classList.add('flipped');
+            card.innerHTML = `<div style="font-size:0.8em;">${card.dataset.value}</div>`;
+
+            const flipped = document.querySelectorAll('.card.flipped:not(.matched)');
+            if (flipped.length === 2) {
+                setTimeout(() => checkMatch(flipped), 500);
+            }
+        }
+
+        function checkMatch(cards) {
+            if (cards[0].dataset.id === cards[1].dataset.id) {
+                cards.forEach(card => card.classList.add('matched'));
+                memoramaScore += 10;
+                updateMemoramaScore();
+
+                if (document.querySelectorAll('.card.matched').length === document.querySelectorAll('.card').length) {
+                    alert(`¡Ganaste! Puntuación: ${memoramaScore}`);
+                    if (modoMemorama === 'competencia') clearInterval(timerInterval);
+                }
+            } else {
+                cards.forEach(card => {
+                    card.classList.remove('flipped');
+                    card.innerHTML = '?';
+                });
+            }
+        }
+
+        function startTimer() {
+            timerSeconds = 300; // 5 minutos
+            document.getElementById('timer').style.display = 'block';
+            clearInterval(timerInterval);
+            timerInterval = setInterval(() => {
+                timerSeconds--;
+                document.getElementById('timer-display').innerHTML = timerSeconds + 's';
+                if (timerSeconds <= 0) {
+                    clearInterval(timerInterval);
+                    alert('¡Tiempo terminado!');
+                    resetMemorama();
+                }
+            }, 1000);
+        }
+
+        function setModoMemorama(modo) {
+            modoMemorama = modo;
+            document.querySelectorAll('.modo-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            if (modo === 'competencia') {
+                document.getElementById('timer').style.display = 'block';
+            } else {
+                document.getElementById('timer').style.display = 'none';
+                clearInterval(timerInterval);
+            }
+            resetMemorama();
+        }
+
+        function updateMemoramaScore() {
+            document.getElementById('memorama-score').innerHTML = memoramaScore + ' puntos';
+        }
+
+        function resetMemorama() {
+            clearInterval(timerInterval);
+            initMemorama();
+        }
+
+        function nextMemorama() {
+            resetMemorama();
+        }
+
+        // QUIZ
+        function initQuiz() {
+            quizScore = 0;
+            currentQuestion = 0;
+            quizTotal = 10;
+            generateQuizQuestions();
+            showQuestion();
+        }
+
+        let quizQuestions = [];
+
+        function generateQuizQuestions() {
+            quizQuestions = [];
+            const bancoPreguntas = [
+                // PREGUNTAS SOBRE DEFINICIONES
+                ...todasLasPropiedades.map(prop => ({
+                    tipo: 'definicion',
+                    pregunta: `¿Cuál es la definición de ${prop.nombre}?`,
+                    respuestaCorrecta: prop.definicion,
+                    propiedad: prop.nombre,
+                    familia: prop.familia
+                })),
+                // PREGUNTAS SOBRE APLICACIONES
+                ...todasLasPropiedades.map(prop => ({
+                    tipo: 'aplicacion',
+                    pregunta: `¿Cuál es una aplicación de ${prop.nombre}?`,
+                    respuestaCorrecta: prop.aplicacion,
+                    propiedad: prop.nombre,
+                    familia: prop.familia
+                })),
+                // PREGUNTAS SOBRE FAMILIA
+                ...todasLasPropiedades.map(prop => ({
+                    tipo: 'familia',
+                    pregunta: `¿A qué familia pertenece la propiedad '${prop.nombre}'?`,
+                    respuestaCorrecta: prop.familia,
+                    propiedad: prop.nombre,
+                    familia: prop.familia
+                })),
+                // PREGUNTAS DE COMPARACIÓN
+                {
+                    tipo: 'comparacion',
+                    pregunta: 'La ductilidad es la capacidad de deformarse plásticamente. ¿Cuál es lo opuesto?',
+                    respuestaCorrecta: 'Fragilidad',
+                    propiedad: 'Ductilidad',
+                    familia: 'Propiedades Mecánicas'
+                },
+                {
+                    tipo: 'comparacion',
+                    pregunta: 'La conductividad eléctrica es alta en el cobre. ¿Cuál material tiene baja conductividad?',
+                    respuestaCorrecta: 'Vidrio',
+                    propiedad: 'Conductividad',
+                    familia: 'Propiedades Eléctricas'
+                },
+                {
+                    tipo: 'comparacion',
+                    pregunta: 'El ferromagnetismo es atracción fuerte a campos magnéticos. ¿Qué es el diamagnetismo?',
+                    respuestaCorrecta: 'Repulsión a campos magnéticos',
+                    propiedad: 'Magnetismo',
+                    familia: 'Propiedades Magnéticas'
+                },
+                // PREGUNTAS DE IDENTIFICACIÓN
+                {
+                    tipo: 'identificacion',
+                    pregunta: 'Un material que permite el paso de luz sin dispersión es:',
+                    respuestaCorrecta: 'Transparente',
+                    propiedad: 'Transparencia',
+                    familia: 'Propiedades Ópticas'
+                },
+                {
+                    tipo: 'identificacion',
+                    pregunta: 'La formación de óxido en hierro es un ejemplo de:',
+                    respuestaCorrecta: 'Oxidación',
+                    propiedad: 'Oxidación',
+                    familia: 'Propiedades Químicas'
+                },
+                {
+                    tipo: 'identificacion',
+                    pregunta: 'La resistencia de un material a rayarse es su:',
+                    respuestaCorrecta: 'Dureza',
+                    propiedad: 'Dureza',
+                    familia: 'Propiedades Mecánicas'
+                },
+                // PREGUNTAS DE APLICACIÓN PRÁCTICA
+                {
+                    tipo: 'practica',
+                    pregunta: 'Para construir un puente que soporte mucho peso, ¿qué propiedad es más importante?',
+                    respuestaCorrecta: 'Resistencia',
+                    propiedad: 'Resistencia',
+                    familia: 'Propiedades Mecánicas'
+                },
+                {
+                    tipo: 'practica',
+                    pregunta: '¿Cuál es la propiedad más importante en los cables eléctricos?',
+                    respuestaCorrecta: 'Conductividad Eléctrica',
+                    propiedad: 'Conductividad',
+                    familia: 'Propiedades Eléctricas'
+                },
+                {
+                    tipo: 'practica',
+                    pregunta: 'En un disipador de calor de computadora, ¿qué propiedad es crítica?',
+                    respuestaCorrecta: 'Conductividad Térmica',
+                    propiedad: 'Conductividad Térmica',
+                    familia: 'Propiedades Térmicas'
+                },
+                {
+                    tipo: 'practica',
+                    pregunta: 'Para tuberías en ambientes marinos, ¿qué propiedad es esencial?',
+                    respuestaCorrecta: 'Resistencia a la Corrosión',
+                    propiedad: 'Resistencia a la Corrosión',
+                    familia: 'Propiedades Químicas'
+                },
+                {
+                    tipo: 'practica',
+                    pregunta: '¿Qué propiedad permite que las fibras ópticas transmitan información?',
+                    respuestaCorrecta: 'Índice de Refracción',
+                    propiedad: 'Índice de Refracción',
+                    familia: 'Propiedades Ópticas'
+                }
+            ];
+
+            // Seleccionar 20 preguntas aleatorias del banco
+            const preguntasAleatorias = bancoPreguntas.sort(() => Math.random() - 0.5).slice(0, 20);
+            quizTotal = preguntasAleatorias.length;
+
+            preguntasAleatorias.forEach(q => {
+                const opciones = [q.respuestaCorrecta];
+                
+                // Generar opciones incorrectas
+                const propiedadesAleatorias = todasLasPropiedades.sort(() => Math.random() - 0.5).slice(0, 10);
+                
+                while (opciones.length < 4) {
+                    let opcionIncorrecta;
+                    
+                    if (q.tipo === 'definicion') {
+                        opcionIncorrecta = propiedadesAleatorias[opciones.length - 1]?.definicion;
+                    } else if (q.tipo === 'aplicacion') {
+                        opcionIncorrecta = propiedadesAleatorias[opciones.length - 1]?.aplicacion;
+                    } else if (q.tipo === 'familia') {
+                        const familias = [...new Set(todasLasPropiedades.map(p => p.familia))];
+                        opcionIncorrecta = familias[Math.floor(Math.random() * familias.length)];
+                    } else {
+                        opcionIncorrecta = ['Fragilidad', 'Conductividad', 'Vidrio', 'Transparente', 'Oxidación', 'Dureza', 'Resistencia'][Math.floor(Math.random() * 7)];
+                    }
+                    
+                    if (opcionIncorrecta && !opciones.includes(opcionIncorrecta)) {
+                        opciones.push(opcionIncorrecta);
+                    }
+                }
+
+                quizQuestions.push({
+                    pregunta: q.pregunta,
+                    opciones: opciones.sort(() => Math.random() - 0.5),
+                    respuestaCorrecta: q.respuestaCorrecta,
+                    propiedad: q.propiedad,
+                    familia: q.familia
+                });
+            });
+        }
+
+        function showQuestion() {
+            if (currentQuestion >= quizTotal) {
+                showQuizResults();
+                return;
+            }
+
+            const q = quizQuestions[currentQuestion];
+            const container = document.getElementById('quiz-container');
+            container.innerHTML = `
+                <div class="question">
+                    <h3>${q.pregunta}</h3>
+                    <p style="color:#999; font-size:0.9em;">Familia: ${q.familia}</p>
+                    <div class="options">
+                        ${q.opciones.map((opt, i) => `
+                            <div class="option" onclick="selectOption(this, '${opt}', '${q.respuestaCorrecta}')">${opt}</div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('quiz-progress').innerHTML = `Pregunta ${currentQuestion + 1} de ${quizTotal} | Familia: ${q.familia}`;
+            document.getElementById('next-btn').style.display = 'none';
+        }
+
+        function selectOption(element, selected, correct) {
+            document.querySelectorAll('.option').forEach(opt => opt.onclick = null);
+
+            if (selected === correct) {
+                element.classList.add('correct');
+                quizScore++;
+            } else {
+                element.classList.add('incorrect');
+                document.querySelectorAll('.option').forEach(opt => {
+                    if (opt.innerHTML === correct) opt.classList.add('correct');
+                });
+            }
+
+            document.getElementById('quiz-score').innerHTML = `${quizScore} / ${quizTotal}`;
+            document.getElementById('next-btn').style.display = 'block';
+        }
+
+        function nextQuestion() {
+            currentQuestion++;
+            showQuestion();
+        }
+
+        function showQuizResults() {
+            const container = document.getElementById('quiz-container');
+            const porcentaje = Math.round((quizScore / quizTotal) * 100);
+            container.innerHTML = `
+                <div style="text-align:center;">
+                    <h2 style="color:#667eea; font-size:2em; margin-bottom:10px;">¡Quiz Completado!</h2>
+                    <p style="font-size:1.5em; color:#333; margin-bottom:20px;">Puntuación: ${quizScore}/${quizTotal} (${porcentaje}%)</p>
+                    <p style="font-size:1.1em; color:#666;">
+                        ${porcentaje >= 80 ? '¡Excelente trabajo!' : porcentaje >= 60 ? 'Buen intento, sigue practicando' : 'Necesitas estudiar más'}
+                    </p>
+                </div>
+            `;
+            document.getElementById('next-btn').style.display = 'none';
+        }
+
+        function resetQuiz() {
+            initQuiz();
+        }
+
+        // LEADERBOARD
+        function updateLeaderboard() {
+            const tbody = document.getElementById('leaderboard-body');
+            const top3 = leaderboard.sort((a, b) => b.puntuacion - a.puntuacion).slice(0, 3);
+
+            if (top3.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:#999;">No hay puntuaciones aún</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = top3.map((entry, i) => `
+                <tr>
+                    <td><span class="medal rank-${i+1}">${i === 0 ? '🥇' : i === 1 ? '🥈' : '🥉'}</span></td>
+                    <td>${entry.nombre}</td>
+                    <td style="font-weight:bold; color:#667eea;">${entry.puntuacion}</td>
+                    <td>${entry.modo}</td>
+                </tr>
+            `).join('');
+        }
+
+        function guardarPuntuacion() {
+            const nombre = prompt('¿Cuál es tu nombre?');
+            if (!nombre) return;
+
+            const puntuacion = Math.max(memoramaScore, quizScore);
+            const modo = 'Competencia';
+
+            leaderboard.push({nombre, puntuacion, modo});
+            localStorage.setItem('leaderboard', JSON.stringify(leaderboard));
+
+            updateLeaderboard();
+            alert('¡Puntuación guardada!');
+        }
+
+        // INICIAR
+        init();
+    </script>
+</body>
+</html>
