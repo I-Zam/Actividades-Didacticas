@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Juego de Propiedades de Materiales</title>
+    <link rel="stylesheet" href="juego-styles.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎮 Juego de Propiedades de Materiales</h1>
+            <p>Aprende y compite con tus compañeros</p>
+        </div>
+
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('memorama')">🎴 Memorama</button>
+            <button class="tab-btn" onclick="switchTab('quiz')">❓ Quiz</button>
+            <button class="tab-btn" onclick="switchTab('leaderboard')">🏆 Clasificación</button>
+        </div>
+
+        <!-- MEMORAMA -->
+        <div id="memorama" class="tab-content active">
+            <div class="score-display">
+                <h2 id="memorama-score">0 puntos</h2>
+                <p>Empareja las propiedades con sus definiciones</p>
+            </div>
+
+            <div class="modo-selector">
+                <button class="modo-btn active" onclick="setModoMemorama('competencia')">⚡ Competencia (Tiempo)</button>
+                <button class="modo-btn" onclick="setModoMemorama('estudio')">📚 Estudio (Sin Tiempo)</button>
+            </div>
+
+            <div id="timer" class="score-display" style="display:none;">
+                <p>Tiempo restante: <strong id="timer-display">5:00</strong></p>
+            </div>
+
+            <div class="memorama-container" id="memorama-container"></div>
+
+            <div class="btn-group">
+                <button class="btn" onclick="resetMemorama()">🔄 Reiniciar</button>
+            </div>
+        </div>
+
+        <!-- QUIZ -->
+        <div id="quiz" class="tab-content">
+            <div class="quiz-container">
+                <div class="stats">
+                    <div class="stat-card">
+                        <h3 id="quiz-progress">1/20</h3>
+                        <p>Pregunta</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3 id="quiz-correct">0</h3>
+                        <p>Correctas</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3 id="quiz-incorrect">0</h3>
+                        <p>Incorrectas</p>
+                    </div>
+                </div>
+
+                <div id="quiz-questions"></div>
+
+                <div class="btn-group">
+                    <button class="btn" onclick="startQuiz()">🎯 Comenzar Quiz</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- CLASIFICACIÓN -->
+        <div id="leaderboard" class="tab-content">
+            <div class="leaderboard">
+                <h2>🏆 Top 3 Jugadores</h2>
+                <table class="leaderboard-table">
+                    <thead>
+                        <tr>
+                            <th>Posición</th>
+                            <th>Nombre</th>
+                            <th>Puntuación</th>
+                            <th>Modo</th>
+                        </tr>
+                    </thead>
+                    <tbody id="leaderboard-body">
+                        <tr>
+                            <td colspan="4" style="text-align:center; color:#999;">No hay datos aún</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div class="btn-group">
+                    <button class="btn btn-secondary" onclick="clearLeaderboard()">🗑️ Limpiar Clasificación</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="juego-script.js"></script>
+</body>
+</html>
