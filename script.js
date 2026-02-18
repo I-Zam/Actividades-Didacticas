@@ -9,62 +9,28 @@ const propiedadesData = {
     ]
 };
 
-// ESTADO GLOBAL (Minimizado)
-const state = {
-    memoramaScore: 0,
-    quizScore: 0,
-    currentQuestion: 0,
-    timerInterval: null,
-    timerSeconds: 300,
-    modoMemorama: 'competencia',
-    todasLasPropiedades: [],
-    leaderboard: [],
-    quizPreguntas: [],
-    flippedCards: new Set(),
-    matchedCards: new Set()
-};
+// ESTADO GLOBAL
+let memoramaScore = 0;
+let quizScore = 0;
+let currentQuestion = 0;
+let timerInterval = null;
+let timerSeconds = 300;
+let modoMemorama = 'competencia';
+let todasLasPropiedades = [];
+let leaderboard = [];
+let quizPreguntas = [];
+let flippedCards = new Set();
+let matchedCards = new Set();
 
-// DELEGACIÓN DE EVENTOS (Event Delegation)
-document.addEventListener('DOMContentLoaded', () => {
-    initApp();
-});
-
-document.addEventListener('click', (e) => {
-    const target = e.target;
-    
-    // Tabs
-    if (target.classList.contains('tab-btn')) switchTab(target.dataset.tab);
-    
-    // Memorama
-    if (target.classList.contains('card')) flipCard(target);
-    if (target.classList.contains('modo-btn')) setModoMemorama(target.dataset.modo);
-    if (target.dataset.action === 'reset-memorama') resetMemorama();
-    
-    // Quiz
-    if (target.dataset.action === 'start-quiz') startQuiz();
-    if (target.dataset.action === 'reset-quiz') resetQuiz();
-    if (target.classList.contains('option')) seleccionarRespuesta(target);
-    
-    // Leaderboard
-    if (target.dataset.action === 'clear-leaderboard') clearLeaderboard();
-});
-
-// ============================================
 // INICIALIZACIÓN
-// ============================================
-function initApp() {
-    // Cargar datos
-    state.todasLasPropiedades = propiedadesData.familias.flatMap(f => 
+window.addEventListener('DOMContentLoaded', () => {
+    todasLasPropiedades = propiedadesData.familias.flatMap(f => 
         f.propiedades.map(p => ({...p, familia: f.nombre, color: f.color}))
     );
-    
-    // Cargar leaderboard
-    state.leaderboard = JSON.parse(localStorage.getItem('leaderboard')) || [];
-    
-    // Inicializar componentes
+    leaderboard = JSON.parse(localStorage.getItem('leaderboard')) || [];
     initMemorama();
     updateLeaderboard();
-}
+});
 
 // ============================================
 // TABS
@@ -81,30 +47,27 @@ function switchTab(tabName) {
 }
 
 // ============================================
-// MEMORAMA (Optimizado)
+// MEMORAMA
 // ============================================
 function initMemorama() {
     const container = document.getElementById('memorama-container');
     if (!container) return;
     
     container.innerHTML = '';
-    state.memoramaScore = 0;
-    state.flippedCards.clear();
-    state.matchedCards.clear();
+    memoramaScore = 0;
+    flippedCards.clear();
+    matchedCards.clear();
     updateMemoramaScore();
 
-    // Seleccionar 6 propiedades aleatorias
-    const propiedades = [...state.todasLasPropiedades]
+    const propiedades = [...todasLasPropiedades]
         .sort(() => Math.random() - 0.5)
         .slice(0, 6);
     
-    // Crear pares
     const pares = propiedades.flatMap(prop => [
         {type: 'nombre', value: prop.nombre, id: prop.id},
         {type: 'definicion', value: prop.definicion, id: prop.id}
     ]).sort(() => Math.random() - 0.5);
 
-    // Renderizar tarjetas
     pares.forEach((par, index) => {
         const card = document.createElement('div');
         card.className = 'card';
@@ -113,22 +76,23 @@ function initMemorama() {
         card.dataset.type = par.type;
         card.dataset.id = par.id;
         card.dataset.value = par.value;
+        card.onclick = () => flipCard(card);
         container.appendChild(card);
     });
 
-    if (state.modoMemorama === 'competencia') {
+    if (modoMemorama === 'competencia') {
         startTimer();
     }
 }
 
 function flipCard(card) {
-    if (card.classList.contains('matched') || state.flippedCards.has(card.dataset.index)) return;
+    if (card.classList.contains('matched') || flippedCards.has(card.dataset.index)) return;
 
     card.classList.add('flipped');
     card.innerHTML = `<div style="font-size:0.8em;">${card.dataset.value}</div>`;
-    state.flippedCards.add(card.dataset.index);
+    flippedCards.add(card.dataset.index);
 
-    if (state.flippedCards.size === 2) {
+    if (flippedCards.size === 2) {
         const flipped = Array.from(document.querySelectorAll('.card.flipped:not(.matched)'));
         setTimeout(() => checkMatch(flipped), 500);
     }
@@ -138,34 +102,34 @@ function checkMatch(cards) {
     if (cards[0].dataset.id === cards[1].dataset.id) {
         cards.forEach(card => {
             card.classList.add('matched');
-            state.matchedCards.add(card.dataset.index);
+            matchedCards.add(card.dataset.index);
         });
-        state.memoramaScore += 10;
+        memoramaScore += 10;
         updateMemoramaScore();
 
-        if (state.matchedCards.size === document.querySelectorAll('.card').length) {
-            clearInterval(state.timerInterval);
+        if (matchedCards.size === document.querySelectorAll('.card').length) {
+            clearInterval(timerInterval);
             setTimeout(() => {
-                guardarPuntuacion('Memorama', state.memoramaScore, state.modoMemorama);
-                alert(`¡Ganaste! Puntuación: ${state.memoramaScore} puntos`);
+                guardarPuntuacion('Memorama', memoramaScore, modoMemorama);
+                alert(`¡Ganaste! Puntuación: ${memoramaScore} puntos`);
             }, 300);
         }
     } else {
         cards.forEach(card => {
             card.classList.remove('flipped');
             card.innerHTML = '?';
-            state.flippedCards.delete(card.dataset.index);
+            flippedCards.delete(card.dataset.index);
         });
     }
 }
 
 function updateMemoramaScore() {
     const el = document.getElementById('memorama-score');
-    if (el) el.textContent = `${state.memoramaScore} puntos`;
+    if (el) el.textContent = `${memoramaScore} puntos`;
 }
 
 function setModoMemorama(modo) {
-    state.modoMemorama = modo;
+    modoMemorama = modo;
     document.querySelectorAll('.modo-btn').forEach(btn => btn.classList.remove('active'));
     event.target.classList.add('active');
     resetMemorama();
@@ -176,46 +140,50 @@ function startTimer() {
     if (!timerDisplay) return;
     
     timerDisplay.style.display = 'block';
-    state.timerSeconds = 300;
+    timerSeconds = 300;
 
-    state.timerInterval = setInterval(() => {
-        state.timerSeconds--;
-        const mins = Math.floor(state.timerSeconds / 60);
-        const secs = state.timerSeconds % 60;
+    timerInterval = setInterval(() => {
+        timerSeconds--;
+        const mins = Math.floor(timerSeconds / 60);
+        const secs = timerSeconds % 60;
         const display = document.getElementById('timer-display');
         if (display) display.textContent = `${mins}:${secs.toString().padStart(2, '0')}`;
 
-        if (state.timerSeconds <= 0) {
-            clearInterval(state.timerInterval);
+        if (timerSeconds <= 0) {
+            clearInterval(timerInterval);
             document.querySelectorAll('.card').forEach(card => card.style.pointerEvents = 'none');
-            guardarPuntuacion('Memorama', state.memoramaScore, 'competencia');
-            alert(`¡Tiempo terminado! Puntuación: ${state.memoramaScore} puntos`);
+            guardarPuntuacion('Memorama', memoramaScore, 'competencia');
+            alert(`¡Tiempo terminado! Puntuación: ${memoramaScore} puntos`);
         }
     }, 1000);
 }
 
 function resetMemorama() {
-    clearInterval(state.timerInterval);
+    clearInterval(timerInterval);
     const timerDisplay = document.getElementById('timer');
     if (timerDisplay) timerDisplay.style.display = 'none';
     initMemorama();
 }
 
+function nextMemorama() {
+    resetMemorama();
+}
+
 // ============================================
-// QUIZ (Optimizado)
+// QUIZ
 // ============================================
 function startQuiz() {
-    state.quizPreguntas = generarPreguntas();
-    state.quizScore = 0;
-    state.currentQuestion = 0;
+    quizPreguntas = generarPreguntas();
+    quizScore = 0;
+    currentQuestion = 0;
     mostrarPregunta();
 }
 
 function generarPreguntas() {
     const preguntas = [];
-    const props = [...state.todasLasPropiedades];
+    const props = [...todasLasPropiedades];
 
-    for (let i = 0; i < 10; i++) { // Reducido de 20 a 10 para mayor velocidad
+    for (let i = 0; i < 10; i++) {
         const prop = props[Math.floor(Math.random() * props.length)];
         const tipo = Math.random() > 0.5 ? 'definicion' : 'aplicacion';
 
@@ -248,13 +216,13 @@ function generarOpciones(respuestaCorrecta, props) {
 }
 
 function mostrarPregunta() {
-    if (state.currentQuestion >= state.quizPreguntas.length) {
+    if (currentQuestion >= quizPreguntas.length) {
         mostrarResultados();
         return;
     }
 
-    const pregunta = state.quizPreguntas[state.currentQuestion];
-    const container = document.getElementById('quiz-questions');
+    const pregunta = quizPreguntas[currentQuestion];
+    const container = document.getElementById('quiz-container');
     if (!container) return;
 
     container.innerHTML = `
@@ -263,7 +231,7 @@ function mostrarPregunta() {
             <p style="color:#999; font-size:0.9em;">Familia: ${pregunta.familia}</p>
             <div class="options">
                 ${pregunta.opciones.map((opcion, idx) => `
-                    <div class="option" data-opcion="${opcion}" data-correcta="${pregunta.respuestaCorrecta}">
+                    <div class="option" onclick="seleccionarRespuesta('${opcion}', '${pregunta.respuestaCorrecta}')">
                         ${opcion}
                     </div>
                 `).join('')}
@@ -274,64 +242,68 @@ function mostrarPregunta() {
     actualizarProgreso();
 }
 
-function seleccionarRespuesta(target) {
-    if (!target.classList.contains('option')) return;
-
-    const respuesta = target.dataset.opcion;
-    const correcta = target.dataset.correcta;
+function seleccionarRespuesta(respuesta, correcta) {
     const opciones = document.querySelectorAll('.option');
-    
     opciones.forEach(op => op.style.pointerEvents = 'none');
 
+    let selectedOption = null;
+    opciones.forEach(op => {
+        if (op.textContent.includes(respuesta)) {
+            selectedOption = op;
+        }
+    });
+
     if (respuesta === correcta) {
-        target.classList.add('correct');
-        state.quizScore++;
+        if (selectedOption) selectedOption.classList.add('correct');
+        quizScore++;
     } else {
-        target.classList.add('incorrect');
+        if (selectedOption) selectedOption.classList.add('incorrect');
         opciones.forEach(op => {
-            if (op.dataset.opcion === correcta) {
+            if (op.textContent.includes(correcta)) {
                 op.classList.add('correct');
             }
         });
     }
 
     setTimeout(() => {
-        state.currentQuestion++;
+        currentQuestion++;
         mostrarPregunta();
     }, 1500);
 }
 
 function actualizarProgreso() {
-    const total = state.quizPreguntas.length;
+    const total = quizPreguntas.length;
     const progress = document.getElementById('quiz-progress');
-    const correct = document.getElementById('quiz-correct');
-    const incorrect = document.getElementById('quiz-incorrect');
+    const score = document.getElementById('quiz-score');
     
-    if (progress) progress.textContent = `${state.currentQuestion + 1}/${total}`;
-    if (correct) correct.textContent = state.quizScore;
-    if (incorrect) incorrect.textContent = state.currentQuestion - state.quizScore;
+    if (progress) progress.textContent = `Pregunta ${currentQuestion + 1} de ${total}`;
+    if (score) score.textContent = `${quizScore} / ${currentQuestion}`;
 }
 
 function mostrarResultados() {
-    const porcentaje = Math.round((state.quizScore / state.quizPreguntas.length) * 100);
-    const container = document.getElementById('quiz-questions');
+    const porcentaje = Math.round((quizScore / quizPreguntas.length) * 100);
+    const container = document.getElementById('quiz-container');
     if (!container) return;
 
     container.innerHTML = `
         <div style="text-align:center; padding:30px;">
             <h2 style="color:#667eea; font-size:2em;">¡Quiz Completado!</h2>
-            <p style="font-size:1.5em; margin:20px 0;">Puntuación: ${state.quizScore}/${state.quizPreguntas.length}</p>
+            <p style="font-size:1.5em; margin:20px 0;">Puntuación: ${quizScore}/${quizPreguntas.length}</p>
             <p style="font-size:1.2em; color:#666;">Porcentaje: ${porcentaje}%</p>
-            <button class="btn" data-action="start-quiz" style="margin-top:20px;">🔄 Intentar de Nuevo</button>
+            <button class="btn" onclick="startQuiz()" style="margin-top:20px;">🔄 Intentar de Nuevo</button>
         </div>
     `;
 
-    guardarPuntuacion('Quiz', state.quizScore * 10, 'quiz');
+    guardarPuntuacion('Quiz', quizScore * 10, 'quiz');
 }
 
 function resetQuiz() {
-    const container = document.getElementById('quiz-questions');
+    const container = document.getElementById('quiz-container');
     if (container) container.innerHTML = '<p style="text-align:center; color:#999;">Haz clic en "Comenzar Quiz" para empezar</p>';
+}
+
+function nextQuestion() {
+    // Esta función no se necesita con el nuevo flujo
 }
 
 // ============================================
@@ -341,12 +313,12 @@ function updateLeaderboard() {
     const tbody = document.getElementById('leaderboard-body');
     if (!tbody) return;
     
-    if (state.leaderboard.length === 0) {
+    if (leaderboard.length === 0) {
         tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:#999;">No hay datos aún</td></tr>';
         return;
     }
 
-    const top3 = [...state.leaderboard]
+    const top3 = [...leaderboard]
         .sort((a, b) => b.puntuacion - a.puntuacion)
         .slice(0, 3);
     const medallas = ['🥇', '🥈', '🥉'];
@@ -365,20 +337,20 @@ function guardarPuntuacion(modo, puntuacion, tipoModo) {
     const nombre = prompt('Ingresa tu nombre para guardar tu puntuación:');
     if (!nombre) return;
 
-    state.leaderboard.push({
+    leaderboard.push({
         nombre: nombre,
         puntuacion: puntuacion,
         modo: modo,
         fecha: new Date().toLocaleDateString()
     });
 
-    localStorage.setItem('leaderboard', JSON.stringify(state.leaderboard));
+    localStorage.setItem('leaderboard', JSON.stringify(leaderboard));
     updateLeaderboard();
 }
 
 function clearLeaderboard() {
     if (confirm('¿Estás seguro de que deseas limpiar la clasificación?')) {
-        state.leaderboard = [];
+        leaderboard = [];
         localStorage.removeItem('leaderboard');
         updateLeaderboard();
     }
